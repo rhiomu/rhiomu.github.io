@@ -3167,12 +3167,12 @@ Analyze the request and return:
   var cur = document.getElementById('os-cur');
   function fit() {
     var s = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
-    frame.style.transform = 'scale(' + s + ')';
+    if(frame) frame.style.transform = 'scale(' + s + ')';
   }
   function go(i) {
     idx = Math.max(0, Math.min(pages.length - 1, i));
     pages.forEach(function (p, n) { p.hidden = n !== idx; });
-    cur.textContent = String(idx + 1);
+    if(cur) cur.textContent = String(idx + 1);
   }
   window.addEventListener('resize', fit);
   window.addEventListener('keydown', function (e) {
@@ -3181,6 +3181,48 @@ Analyze the request and return:
     else if (e.key === 'Home') { e.preventDefault(); go(0); }
     else if (e.key === 'End') { e.preventDefault(); go(pages.length - 1); }
   });
+
+  var touchStartX = 0;
+  var touchEndX = 0;
+  var touchStartY = 0;
+  var touchEndY = 0;
+  
+  window.addEventListener('touchstart', function(e) {
+    touchStartX = e.changedTouches[0].screenX;
+    touchStartY = e.changedTouches[0].screenY;
+  }, {passive: true});
+  
+  window.addEventListener('touchend', function(e) {
+    touchEndX = e.changedTouches[0].screenX;
+    touchEndY = e.changedTouches[0].screenY;
+    handleGesture();
+  }, {passive: true});
+  
+  function handleGesture() {
+    var swipeDistX = touchEndX - touchStartX;
+    var swipeDistY = touchEndY - touchStartY;
+    if (abs(swipeDistX) > abs(swipeDistY) && abs(swipeDistX) > 40) {
+      if (swipeDistX < 0) {
+        go(idx + 1);
+      } else {
+        go(idx - 1);
+      }
+    }
+  }
+  
+  function abs(val) {
+    return val < 0 ? -val : val;
+  }
+
+  window.addEventListener('click', function(e) {
+    if (e.target.closest('a') || e.target.closest('button')) return;
+    if (e.clientX > window.innerWidth / 2) {
+      go(idx + 1);
+    } else {
+      go(idx - 1);
+    }
+  });
+
   fit();
   go(0);
 })();
