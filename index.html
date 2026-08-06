@@ -42,6 +42,9 @@ html, body { margin: 0; height: 100%; background: #000; overflow: hidden; font-f
   .os-tap-hint { opacity: .38; }
   .os-tap:active + .os-tap-hint { opacity: .85; }
 }
+@media (hover: hover) and (pointer: fine) {
+  .os-tap { display: none; }
+}
 @media (max-width: 640px), (hover: none) and (pointer: coarse) {
   .os-nav-toggle { top: max(12px, env(safe-area-inset-top)); left: max(12px, env(safe-area-inset-left)); width: 46px; height: 46px; padding: 11px; }
   .os-counter { bottom: max(10px, env(safe-area-inset-bottom)); padding: 6px 14px; font-size: 14px; }
@@ -3334,8 +3337,16 @@ ai_recommendation          string</div></div><img data-slide-loc="12773:4" src="
   var navSearch = document.getElementById('os-nav-search');
   var navList = document.getElementById('os-nav-list');
   var navItems = [];
+  var isTouchDevice = !!(window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches);
   function fit() {
-    var s = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    var vw = window.innerWidth, vh = window.innerHeight;
+    var containScale = Math.min(vw / 1920, vh / 1080);
+    var s = containScale;
+    // On touch devices in landscape, fill the screen edge-to-edge (crop a little
+    // off the sides) instead of leaving black bars from preserving 16:9 exactly.
+    if (isTouchDevice && vw > vh) {
+      s = Math.max(vw / 1920, vh / 1080);
+    }
     frame.style.transform = 'scale(' + s + ')';
   }
   function setNavigator(open) {
